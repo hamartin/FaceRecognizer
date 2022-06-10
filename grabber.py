@@ -7,12 +7,8 @@ import sys
 
 import cv2
 
+from lib import DB
 from lib import VideoCapture
-
-
-def createDirectory(fqpn):
-    '''Checks if a directory with the same name as label exist, if not, the directory is created.'''
-    print(fqpn)
 
 
 def getArguments():
@@ -24,14 +20,19 @@ def getArguments():
     parser.add_argument("--label", type=str, required=True, help="The label you are going to take pictures for.")
     parser.add_argument("--basedir", type=str, required=False, default=os.path.dirname(os.path.abspath(__file__)),
         help="The base path to where the different data folders are found.")
-    #parser.add_argument("--amount", type=int, required=False, default=5, help="The number of pictures to grab for this label.")
+    parser.add_argument("--dbfilename", type=str, required=False, default="", help="The database filename found under basedir.")
     return parser.parse_args()
 
 
 if __name__ == "__main__":
 
     args = getArguments()
-    createDirectory(os.path.join(args.basedir, "images", args.label))
+    db = DB(args.dbfilename)
+
+    # We create label ID if it does not exist and get the label ID.
+    labelId = db.getLabelId(args.label)
+    if not labelId:
+        labelId = db.addLabel(args.label)
 
     # We figure out the video source
     if args.infile:
@@ -43,5 +44,6 @@ if __name__ == "__main__":
         cv2.imshow("Grabber", frame)
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
-        #if cv2.waitKey(1) & 0xFF == ord("s"):
-        #    saveFrame(frame, args.label)
+        if cv2.waitKey(1) & 0xFF == ord("s"):
+            ret, encodedFrame = cv2.imencode('.jpg', frame)
+            db.addFrame(encodedFrame.tobytes(), labelId)
