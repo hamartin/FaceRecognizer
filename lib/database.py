@@ -74,6 +74,17 @@ class DB():
         self._conn.commit()
         return self.getLabelId(name)
 
+    def getImages(self):
+        '''Returns a list of tuples where an images and its label is stored.'''
+        self._cursor.execute(
+                '''
+                SELECT images.data, labels.name
+                FROM images
+                INNER JOIN labels
+                    ON images.labelid = labels.id;
+                ''')
+        return self._cursor.fetchall()
+
     def getInformation(self):
         '''Returns information about all the tables in the database.'''
         self._cursor.execute('''SELECT * FROM sqlite_master WHERE type='table';''')

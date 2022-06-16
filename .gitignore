@@ -133,3 +133,6 @@ images/
 
 # vim swap files
 *.swp
+
+# SQlite databases
+*.sqlite
